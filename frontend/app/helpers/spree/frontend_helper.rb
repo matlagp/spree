@@ -284,6 +284,17 @@ module Spree
       @available_option_types
     end
 
+    def available_properties_cache_key
+      @available_properties_cache_key ||= Spree::Property.filterable.maximum(:updated_at)&.utc&.to_i
+    end
+
+    def available_properties
+      @available_properties ||= Rails.cache.fetch("available-properties/#{available_properties_cache_key}") do
+        Spree::Property.includes(:product_properties).filterable.to_a
+      end
+      @available_properties
+    end
+
     def spree_social_link(service)
       return '' if current_store.send(service).blank?
 
